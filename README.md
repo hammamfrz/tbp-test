@@ -43,6 +43,9 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# api documentation
+$ "localhost:3000/api/"
 ```
 
 ## Test
