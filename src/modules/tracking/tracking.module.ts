@@ -10,6 +10,7 @@ import { UsersModule } from '../users/users.module';
 import { TrackingGateway } from './tracking.gateway';
 import { User } from '../users/schemas/user.model';
 import { redisProviders } from 'src/database/redis.providers';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -20,6 +21,10 @@ import { redisProviders } from 'src/database/redis.providers';
     RedisModule.forRoot({
       type: 'single',
       url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1d' },
     }),
     AuthModule,
     UsersModule,

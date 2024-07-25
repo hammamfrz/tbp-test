@@ -32,6 +32,34 @@ export class TrackingController {
     }
   }
 
+  @Get('/redis')
+  async getUserIdFromToken(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const authHeader = req.headers['authorization'];
+      if (!authHeader) {
+        throw new Error('Authorization header not found');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const userId = await this.trackingService.getUserIdFromRedis(token);
+
+      res.status(200).json({
+        status: 'OK',
+        message: 'Successfully fetched user ID from token',
+        data: { userId },
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'ERROR',
+        message: 'Failed to fetch user ID from token',
+        data: { error: error.message },
+      });
+    }
+  }
+
   @Get()
   async getTracking(
     @Req() request: RequestWithUser,

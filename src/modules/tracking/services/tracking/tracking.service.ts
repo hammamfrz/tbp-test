@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectModel as InjectSequelizeModel } from '@nestjs/sequelize';
+import { JwtService } from '@nestjs/jwt';
 import { Tracking } from '../../schemas/tracking.model';
 import { Redis } from 'ioredis';
 import { User } from '../../../users/schemas/user.model';
@@ -13,6 +14,7 @@ export class TrackingService {
     @InjectModel(Tracking.name) private trackingModel: Model<Tracking>,
     @InjectSequelizeModel(User) private readonly userModel: typeof User,
     @Inject('REDIS') private redisClient: Redis,
+    private jwtService: JwtService,
   ) {}
 
   async trackUser(id: string) {
@@ -53,13 +55,25 @@ export class TrackingService {
     return tracking;
   }
 
-  async getTracking(id: string) {
-    const tracking = await this.trackingModel.findOne({ userId: id }).exec();
+  async getUserIdFromRedis(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      return decoded.id;
+    } catch (error) {
+      throw new Error('Unauthorized');
+    }
+  }
 
+  async getTracking(id: string) {
+    const tracking = await this.trackingModel
+      .findOne({ userId: id })
+      .sort({ _id: -1 })
+      .limit(1);
     if (!tracking) {
       throw new Error('Tracking not found');
     }
-
     return tracking;
   }
 }

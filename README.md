@@ -43,9 +43,27 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+```
 
-# api documentation
-$ "localhost:3000/api/"
+## API Documentation
+
+```bash
+(https://documenter.getpostman.com/view/23648317/2sA3kXG1qy)
+```
+
+## Socket.io Documentation
+
+```bash
+- `localhost:3000`
+
+#Event: `track`
+- **Description:** Mengirim token ke server untuk mendapatkan data
+  {
+    "token": "access_token",
+  }
+
+#Event: `trackUpdate`
+- **Description:** Mengirim data terupdate kepada seluruh klien yang terkoneksi
 ```
 
 ## Test

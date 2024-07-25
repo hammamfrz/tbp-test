@@ -5,11 +5,14 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { TrackingService } from './services/tracking/tracking.service';
 
 @WebSocketGateway()
 export class TrackingGateway {
   @WebSocketServer()
   server: Server;
+
+  constructor(private readonly trackingService: TrackingService) {}
 
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
@@ -20,8 +23,16 @@ export class TrackingGateway {
   }
 
   @SubscribeMessage('track')
-  handleTracking(@MessageBody() data: any) {
+  async handleTracking(@MessageBody() data: any) {
     console.log('Received tracking data:', data);
-    this.server.emit('trackingUpdate', data);
+    try {
+      const token = data.token.replace('Bearer ', '');
+      const userId = await this.trackingService.getUserIdFromRedis(token);
+      const tracking = await this.trackingService.trackUser(userId);
+      this.server.emit('trackingUpdate', tracking);
+    } catch (error) {
+      console.error('Error tracking user:', error);
+      this.server.emit('error', { message: error.message });
+    }
   }
 }
