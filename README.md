@@ -59,7 +59,7 @@ $ npm run start:prod
 #Event: `track`
 - **Description:** Mengirim token ke server untuk mendapatkan data
   {
-    "token": "access_token",
+    "token": "{{access_token}}",
   }
 
 #Event: `trackUpdate`
