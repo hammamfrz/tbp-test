@@ -32,6 +32,12 @@
 $ npm install
 ```
 
+## Sequelize Migration
+
+```bash
+$ npx sequelize db:migrate
+```
+
 ## Running the app
 
 ```bash
@@ -48,7 +54,7 @@ $ npm run start:prod
 ## API Documentation
 
 ```bash
-(https://documenter.getpostman.com/view/23648317/2sA3kXG1qy)
+https://documenter.getpostman.com/view/23648317/2sA3kXG1qy
 ```
 
 ## Socket.io Documentation

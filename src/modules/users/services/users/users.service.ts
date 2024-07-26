@@ -10,7 +10,9 @@ export class UsersService {
   ) {}
 
   async findAllUsers(): Promise<User[]> {
-    const users = await this.userModel.findAll();
+    const users = await this.userModel.findAll({
+      attributes: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
+    });
 
     return users;
   }
