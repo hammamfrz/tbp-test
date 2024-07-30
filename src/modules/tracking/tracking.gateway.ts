@@ -28,7 +28,7 @@ export class TrackingGateway {
     try {
       const token = data.token.replace('Bearer ', '');
       const userId = await this.trackingService.getUserIdFromRedis(token);
-      const tracking = await this.trackingService.trackUser(userId);
+      const tracking = await this.trackingService.getTracking(userId);
       this.server.emit('trackingUpdate', tracking);
     } catch (error) {
       console.error('Error tracking user:', error);

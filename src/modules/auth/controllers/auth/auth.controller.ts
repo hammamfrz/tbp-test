@@ -61,7 +61,14 @@ export class AuthController {
   ): Promise<void> {
     try {
       const token = request.headers.authorization.replace('Bearer ', '');
-      await this.authService.logoutUser(token);
+      const tokenBlacklisted = await this.authService.isTokenBlacklisted(token);
+      if (tokenBlacklisted) {
+        response.status(400).json({
+          status: 'ERROR',
+          message: 'Token already blacklisted',
+        });
+        return;
+      }
       response.status(200).json({
         status: 'OK',
         message: 'Successfully logged out',
