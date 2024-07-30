@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { TrackingService } from '../../services/tracking/tracking.service';
+import { TrackingGateway } from '../../tracking.gateway';
 import { Response } from 'express';
 import { RequestWithUser } from '../../../../middlewares/jwt.middleware';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -8,7 +9,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @ApiTags('tracking')
 @ApiBearerAuth()
 export class TrackingController {
-  constructor(private readonly trackingService: TrackingService) {}
+  constructor(
+    private readonly trackingService: TrackingService,
+    private readonly trackingGateway: TrackingGateway
+  ) {}
 
   @Post()
   async track(
@@ -17,7 +21,15 @@ export class TrackingController {
   ): Promise<void> {
     try {
       const { id } = request.user;
-      const result = await this.trackingService.trackUser(id);
+      const track = await this.trackingService.trackUser(id);
+      if (!track) {
+        throw new Error('Failed to track');
+      }
+      const result = await this.trackingService.getTrackFromRedis(id);
+      if (!result) {
+        throw new Error('Failed to get tracking data');
+      }
+      this.trackingGateway.server.emit('trackingUpdate', result);
       response.status(200).json({
         status: 'OK',
         message: 'Successfully tracked',
@@ -28,34 +40,6 @@ export class TrackingController {
         status: 'ERROR',
         message: 'Failed to track',
         data: error,
-      });
-    }
-  }
-
-  @Get('/redis')
-  async getUserIdFromToken(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    try {
-      const authHeader = req.headers['authorization'];
-      if (!authHeader) {
-        throw new Error('Authorization header not found');
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const userId = await this.trackingService.getUserIdFromRedis(token);
-
-      res.status(200).json({
-        status: 'OK',
-        message: 'Successfully fetched user ID from token',
-        data: { userId },
-      });
-    } catch (error) {
-      res.status(500).json({
-        status: 'ERROR',
-        message: 'Failed to fetch user ID from token',
-        data: { error: error.message },
       });
     }
   }

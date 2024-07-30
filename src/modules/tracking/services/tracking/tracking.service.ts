@@ -2,7 +2,6 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectModel as InjectSequelizeModel } from '@nestjs/sequelize';
-import { JwtService } from '@nestjs/jwt';
 import { Tracking } from '../../schemas/tracking.model';
 import { Redis } from 'ioredis';
 import { User } from '../../../users/schemas/user.model';
@@ -14,7 +13,6 @@ export class TrackingService {
     @InjectModel(Tracking.name) private trackingModel: Model<Tracking>,
     @InjectSequelizeModel(User) private readonly userModel: typeof User,
     @Inject('REDIS') private redisClient: Redis,
-    private jwtService: JwtService,
   ) {}
 
   async trackUser(id: string) {
@@ -55,24 +53,15 @@ export class TrackingService {
     return tracking;
   }
 
-  async getUserIdFromRedis(token: string) {
+  async getTrackFromRedis(id: string) {
     try {
-      const decoded = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
-      const trackingData = await this.redisClient.get(`tracking:${decoded.id}`);
-      if (trackingData) {
-        const parsedTrackingData = JSON.parse(trackingData);
-        console.log('Tracking data retrieved from Redis:', parsedTrackingData);
-        const userId = parsedTrackingData.userProfile.id;
-        return userId;
-      } else {
-        console.log('No tracking data found for id:', decoded.id);
-        return null;
+      const trackingData = await this.redisClient.get(`tracking:${id}`);
+      if (!trackingData) {
+        throw new Error('Tracking data not found');
       }
+      return JSON.parse(trackingData);
     } catch (error) {
-      console.error('Error retrieving tracking data from Redis:', error);
-      throw new Error(error.message);
+      throw new Error('Failed to get tracking data');
     }
   }
 
