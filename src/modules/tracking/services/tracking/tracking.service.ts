@@ -60,9 +60,19 @@ export class TrackingService {
       const decoded = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
-      return decoded.id;
+      const trackingData = await this.redisClient.get(`tracking:${decoded.id}`);
+      if (trackingData) {
+        const parsedTrackingData = JSON.parse(trackingData);
+        console.log('Tracking data retrieved from Redis:', parsedTrackingData);
+        const userId = parsedTrackingData.userProfile.id;
+        return userId;
+      } else {
+        console.log('No tracking data found for id:', decoded.id);
+        return null;
+      }
     } catch (error) {
-      throw new Error('Unauthorized');
+      console.error('Error retrieving tracking data from Redis:', error);
+      throw new Error(error.message);
     }
   }
 
