@@ -25,10 +25,11 @@ export class TrackingController {
       if (!track) {
         throw new Error('Failed to track');
       }
-      const result = await this.trackingService.getTrackFromRedis(id);
-      if (!result) {
-        throw new Error('Failed to get tracking data');
+      const userRedis = await this.trackingService.getUserFromRedis(id);
+      if (!userRedis) {
+        throw new Error('Failed to get user from redis');
       }
+      const result = await this.trackingService.getTracking(userRedis.userProfile.id);
       this.trackingGateway.server.emit('trackingUpdate', result);
       response.status(200).json({
         status: 'OK',

@@ -69,6 +69,7 @@ export class AuthController {
         });
         return;
       }
+      await this.authService.logoutUser(token);
       response.status(200).json({
         status: 'OK',
         message: 'Successfully logged out',

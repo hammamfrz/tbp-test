@@ -36,8 +36,8 @@ import { redisProviders } from './database/redis.providers';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JwtMiddleware).forRoutes('/auth/logout');
     consumer.apply(JwtMiddleware).forRoutes('/users');
-    consumer.apply(JwtMiddleware).forRoutes('/users/profile');
     consumer.apply(JwtMiddleware).forRoutes('/tracking');
   }
 }

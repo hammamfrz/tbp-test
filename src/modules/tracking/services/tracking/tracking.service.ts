@@ -33,7 +33,7 @@ export class TrackingService {
     }
 
     const tracking = new this.trackingModel({
-      userId: id,
+      userId: userProfile.id,
       latitude: location.data.latitude,
       longitude: location.data.longitude,
       userProfile: userProfile.toJSON(),
@@ -41,19 +41,21 @@ export class TrackingService {
 
     await tracking.save();
 
-    await this.redisClient.set(
-      `tracking:${id}`,
-      JSON.stringify({
-        userProfile,
-        latitude: location.data.latitude,
-        longitude: location.data.longitude,
-      }),
-    );
+    const storeRedisIsExist = await this.redisClient.get(`tracking:${id}`);
+
+    if (!storeRedisIsExist) {
+      await this.redisClient.set(
+        `tracking:${id}`,
+        JSON.stringify({
+          userProfile,
+        }),
+      );
+    }
 
     return tracking;
   }
 
-  async getTrackFromRedis(id: string) {
+  async getUserFromRedis(id: string) {
     try {
       const trackingData = await this.redisClient.get(`tracking:${id}`);
       if (!trackingData) {
